@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "analisi-nuoto"
+version = "0.1.0"
+description = "Pipeline per analizzare dati di nuoto esportati in CSV."
+requires-python = ">=3.8"
+dependencies = [
+    "matplotlib==3.7.5",
+    "numpy==1.24.4",
+    "pandas==2.0.3",
+    "python-dateutil==2.9.0.post0",
+    "pytz==2026.1.post1",
+    "six==1.17.0",
+    "tzdata==2026.1",
+]
+
+[project.scripts]
+analisi_nuoto = "analisi_nuoto.cli:main"
+
+[tool.setuptools]
+packages = ["analisi_nuoto"]

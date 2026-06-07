@@ -6,5 +6,11 @@ venv/
 # Cache Python
 __pycache__/
 *.pyc
+.pytest_cache/
+*.egg-info/
 .vscode/
+
+# Output generati dalla pipeline
+data/processed/
+data/output/
 
