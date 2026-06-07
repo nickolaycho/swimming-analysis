@@ -1,8 +1,8 @@
 # Analisi Nuoto
 
 Pipeline per analizzare allenamenti di nuoto esportati in CSV, partendo dai file
-dei singoli lap/vasche e arrivando a un dataset pulito sui 100 stile libero piu'
-un grafico tempo/bracciate.
+dei singoli lap/vasche e arrivando a dataset puliti per distanza/stile piu'
+grafici tempo/bracciate.
 
 Esempio di output finale:
 
@@ -39,17 +39,17 @@ La pipeline completa fa tre passaggi:
    li carica con pandas, aggiunge la colonna `activity_id` e salva un unico
    file in `data/processed/merged_laps.csv`.
 
-2. Costruisce il dataset dei 100 stile libero.
-   Dal CSV unificato tiene solo le righe con `Stile == "Stile libero"` e
-   `Distanza == 100`. Poi converte `Totale bracciate` in numero, calcola
+2. Costruisce il dataset per distanza e stile.
+   Dal CSV unificato tiene solo le righe con lo stile e la distanza scelti
+   (`50`, `100` o `200`). Poi converte `Totale bracciate` in numero, calcola
    `Bracciate effettive = Totale bracciate * 2` e salva solo le colonne utili:
    `Tempo`, `Swolf medio`, `Totale bracciate`, `Bracciate effettive`,
    `activity_id`.
 
 3. Genera il grafico finale.
-   Legge `data/processed/100_stile.csv`, converte il tempo in secondi e produce
+   Legge il dataset filtrato, converte il tempo in secondi e produce
    uno scatter plot in cui:
-   - l'asse X e' il tempo del 100 stile;
+   - l'asse X e' il tempo della distanza/stile scelti;
    - l'asse Y sono le bracciate effettive;
    - il colore indica l'ordine/ID dell'allenamento.
 
@@ -59,12 +59,14 @@ Alla fine ottieni questi file:
 data/processed/merged_laps.csv
 data/processed/100_stile.csv
 data/output/100_stile_scatter.png
+data/processed/50_dorso.csv
+data/output/50_dorso_scatter.png
 ```
 
 `merged_laps.csv` serve come base unica con tutti i lap di tutti gli
-allenamenti. `100_stile.csv` e' il dataset specifico per confrontare i 100 stile
-libero. `100_stile_scatter.png` e' il grafico per vedere come cambiano tempo e
-bracciate tra gli allenamenti.
+allenamenti. I file come `100_stile.csv` o `50_dorso.csv` sono dataset specifici
+per confrontare una distanza e uno stile. I file `*_scatter.png` sono i grafici
+per vedere come cambiano tempo e bracciate tra gli allenamenti.
 
 ## Setup e utilizzo
 
@@ -112,8 +114,19 @@ riconoscibile: il nome senza `.csv` viene usato come `activity_id`.
 analisi_nuoto run
 ```
 
-Questo comando esegue merge, preparazione del dataset dei 100 stile e
-generazione del grafico.
+Questo comando esegue merge, preparazione del dataset e generazione del grafico.
+Di default analizza i `100` `Stile libero`.
+
+Per scegliere distanza e stile:
+
+```powershell
+analisi_nuoto run --distance 50 --style Dorso
+analisi_nuoto run --distance 200 --style Rana
+```
+
+Le distanze supportate sono `50`, `100` e `200`. Lo stile viene confrontato con
+la colonna `Stile` del CSV; sono supportati anche alias comuni come `stile` per
+`Stile libero`.
 
 Per aprire anche la finestra del grafico mentre viene generato:
 
@@ -127,9 +140,12 @@ Se vuoi lanciare un solo pezzo alla volta:
 
 ```powershell
 analisi_nuoto merge
-analisi_nuoto prepare-100-stile
-analisi_nuoto plot-100-stile
+analisi_nuoto prepare --distance 100 --style "Stile libero"
+analisi_nuoto plot --distance 100 --style "Stile libero"
 ```
+
+I vecchi comandi `prepare-100-stile` e `plot-100-stile` restano disponibili come
+alias per il caso storico dei 100 stile libero.
 
 ### 5. Cambia percorsi di input/output
 
@@ -138,8 +154,8 @@ Di default la pipeline usa:
 ```text
 input:  data/input/
 merge:  data/processed/merged_laps.csv
-100:    data/processed/100_stile.csv
-plot:   data/output/100_stile_scatter.png
+csv:    data/processed/<distanza>_<stile>.csv
+plot:   data/output/<distanza>_<stile>_scatter.png
 ```
 
 Puoi sovrascrivere i percorsi da CLI:
@@ -148,8 +164,10 @@ Puoi sovrascrivere i percorsi da CLI:
 analisi_nuoto run `
   --raw-laps-dir data/input `
   --merged-laps-csv data/processed/merged_laps.csv `
-  --freestyle-100-csv data/processed/100_stile.csv `
-  --freestyle-100-plot data/output/100_stile_scatter.png
+  --distance 50 `
+  --style Dorso `
+  --swim-csv data/processed/50_dorso.csv `
+  --swim-plot data/output/50_dorso_scatter.png
 ```
 
 ### 6. Se il comando non viene trovato
