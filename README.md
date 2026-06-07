@@ -4,6 +4,14 @@ Pipeline per analizzare allenamenti di nuoto esportati in CSV, partendo dai file
 dei singoli lap/vasche e arrivando a un dataset pulito sui 100 stile libero piu'
 un grafico tempo/bracciate.
 
+Esempio di output finale:
+
+![Scatter plot 100 stile libero](data/output/100_stile_scatter.png)
+
+Il grafico mette in relazione il tempo sui 100 stile libero con le bracciate
+effettive: ogni punto rappresenta una riga del dataset finale e il colore aiuta
+a distinguere gli allenamenti nel tempo.
+
 ## Cosa fa la pipeline
 
 L'input di partenza sono piu' file CSV, uno per allenamento, messi nella cartella
