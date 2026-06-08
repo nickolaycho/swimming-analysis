@@ -124,9 +124,9 @@ analisi_nuoto run --distance 50 --style Dorso
 analisi_nuoto run --distance 200 --style Rana
 ```
 
-Le distanze supportate sono `50`, `100` e `200`. Lo stile viene confrontato con
-la colonna `Stile` del CSV; sono supportati anche alias comuni come `stile` per
-`Stile libero`.
+Le distanze supportate sono definite nel progetto e includono `50`, `75`, `100`
+e `200`. Lo stile viene confrontato con la colonna `Stile` del CSV; sono
+supportati anche alias comuni come `stile` per `Stile libero`.
 
 Per aprire anche la finestra del grafico mentre viene generato:
 
@@ -147,7 +147,30 @@ analisi_nuoto plot --distance 100 --style "Stile libero"
 I vecchi comandi `prepare-100-stile` e `plot-100-stile` restano disponibili come
 alias per il caso storico dei 100 stile libero.
 
-### 5. Cambia percorsi di input/output
+### 5. Apri la dashboard interattiva
+
+Per esplorare distanza e stile da menu a tendina:
+
+```powershell
+analisi_nuoto dashboard
+```
+
+La dashboard usa `data/processed/merged_laps.csv` come sorgente e aggiorna il
+grafico in tempo reale quando cambi distanza o stile. Se vuoi usare un CSV
+unificato diverso:
+
+```powershell
+analisi_nuoto dashboard --merged-laps-csv data/processed/merged_laps.csv
+```
+
+Di default Streamlit apre la dashboard su `http://localhost:8501`.
+
+Per spegnerla:
+```powershell
+Stop-Process -Id 2716,21244  
+``` 
+
+### 6. Cambia percorsi di input/output
 
 Di default la pipeline usa:
 
@@ -170,7 +193,7 @@ analisi_nuoto run `
   --swim-plot data/output/50_dorso_scatter.png
 ```
 
-### 6. Se il comando non viene trovato
+### 7. Se il comando non viene trovato
 
 Se `analisi_nuoto` non e' disponibile, puoi usare direttamente Python:
 

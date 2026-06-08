@@ -1,9 +1,15 @@
 import argparse
+import os
 from pathlib import Path
+import subprocess
+import sys
 from typing import List, Optional
 
 from analisi_nuoto.config import PipelinePaths
 from analisi_nuoto.naming import DEFAULT_DISTANCE, DEFAULT_STYLE, SUPPORTED_DISTANCES
+
+
+SUPPORTED_DISTANCE_LABEL = ", ".join(str(distance) for distance in SUPPORTED_DISTANCES)
 
 
 def _paths_from_args(args: argparse.Namespace) -> PipelinePaths:
@@ -64,6 +70,13 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_paths(plot_swim_parser)
     plot_swim_parser.add_argument("--show-plot", action="store_true")
 
+    dashboard_parser = subparsers.add_parser(
+        "dashboard",
+        help="Avvia la dashboard interattiva",
+    )
+    _add_common_paths(dashboard_parser)
+    dashboard_parser.add_argument("--port", type=int, default=8501)
+
     return parser
 
 
@@ -75,7 +88,7 @@ def _add_common_paths(parser: argparse.ArgumentParser) -> None:
         type=int,
         choices=SUPPORTED_DISTANCES,
         default=DEFAULT_DISTANCE,
-        help="Distanza da analizzare: 50, 100 o 200",
+        help=f"Distanza da analizzare: {SUPPORTED_DISTANCE_LABEL}",
     )
     parser.add_argument(
         "--style",
@@ -97,6 +110,23 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     paths = _paths_from_args(args)
+
+    if args.command == "dashboard":
+        dashboard_path = Path(__file__).with_name("dashboard.py")
+        env = os.environ.copy()
+        env["ANALISI_NUOTO_MERGED_LAPS_CSV"] = str(paths.merged_laps_csv)
+        command = [
+            sys.executable,
+            "-m",
+            "streamlit",
+            "run",
+            str(dashboard_path),
+            "--server.port",
+            str(args.port),
+            "--server.headless",
+            "true",
+        ]
+        return subprocess.run(command, env=env).returncode
 
     if args.command == "run":
         from analisi_nuoto.orchestrator import run_pipeline
