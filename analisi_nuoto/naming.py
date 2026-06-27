@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Union
 
 
-SUPPORTED_DISTANCES = (50, 75, 100, 200)
+SUPPORTED_DISTANCES = (25, 50, 75, 100, 200)
 DEFAULT_DISTANCE = 100
 DEFAULT_STYLE = "Stile libero"
 
@@ -51,3 +51,7 @@ def default_dataset_csv(processed_dir: Path, distance: Union[int, str], style: s
 
 def default_scatter_image(output_dir: Path, distance: Union[int, str], style: str) -> Path:
     return output_dir / f"{dataset_stem(distance, style)}_scatter.png"
+
+
+def default_stroke_rate_image(output_dir: Path, distance: Union[int, str], style: str) -> Path:
+    return output_dir / f"{dataset_stem(distance, style)}_stroke_rate.png"

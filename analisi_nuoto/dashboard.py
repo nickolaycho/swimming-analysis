@@ -56,11 +56,16 @@ def _available_styles(df: pd.DataFrame) -> list:
 
 
 def _render_chart(filtered: pd.DataFrame, distance: int, style: str) -> None:
+    # Separa l'ultima attività dalle altre
+    max_activity_order = filtered["activity_order"].max()
+    df_other = filtered[filtered["activity_order"] < max_activity_order]
+    df_latest = filtered[filtered["activity_order"] == max_activity_order]
+    
     fig = px.scatter(
-        filtered,
+        df_other if not df_other.empty else pd.DataFrame(),
         x="Tempo secondi",
         y="Bracciate effettive",
-        color="activity_order",
+        color="activity_order" if not df_other.empty else None,
         color_continuous_scale="Blues",
         hover_data={
             "Tempo label": True,
@@ -77,8 +82,32 @@ def _render_chart(filtered: pd.DataFrame, distance: int, style: str) -> None:
         },
         title=f"{distance} {style.lower()}: tempo vs bracciate effettive",
     )
+    
+    # Aggiungi i punti dell'ultima attività in rosso
+    if not df_latest.empty:
+        fig.add_scatter(
+            x=df_latest["Tempo secondi"],
+            y=df_latest["Bracciate effettive"],
+            mode="markers",
+            name="Ultima attività",
+            marker={"size": 10, "color": "red", "line": {"width": 1, "color": "darkred"}},
+            hovertext=df_latest.apply(
+                lambda row: (
+                    f"<b>Ultima attività</b><br>"
+                    f"Tempo: {row['Tempo label']}<br>"
+                    f"Bracciate effettive: {row['Bracciate effettive']:.0f}<br>"
+                    f"Swolf medio: {row['Swolf medio']:.0f}<br>"
+                    f"Totale bracciate: {row['Totale bracciate']:.0f}<br>"
+                    f"activity_id: {row['activity_id']}"
+                ),
+                axis=1,
+            ),
+            hoverinfo="text",
+        )
+    
     fig.update_xaxes(autorange="reversed", tickformat=".1f")
-    fig.update_traces(marker={"size": 10, "line": {"width": 1, "color": "black"}})
+    if not df_other.empty:
+        fig.update_traces(marker={"size": 10, "line": {"width": 1, "color": "black"}}, selector={"name": None})
     fig.update_layout(
         height=560,
         margin={"l": 10, "r": 10, "t": 60, "b": 10},

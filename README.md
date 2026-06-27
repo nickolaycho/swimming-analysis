@@ -12,6 +12,15 @@ Il grafico mette in relazione il tempo sui 100 stile libero con le bracciate
 effettive: ogni punto rappresenta una riga del dataset finale e il colore aiuta
 a distinguere gli allenamenti nel tempo.
 
+Puoi generare anche uno scatter alternativo che mette in relazione il **passo
+medio** (asse X) con le **bracciate per minuto** (asse Y):
+
+![Scatter plot 100 stile libero - passo vs bracciate per minuto](data/output/100_stile_stroke_rate.png)
+
+Questo grafico aiuta a capire la relazione tra velocità del passo e cadenza di
+bracciate. Vedi sotto nella sezione "Scatter chart types" come scegliere quale
+grafico generare.
+
 ## Cosa fa la pipeline
 
 L'input di partenza sono piu' file CSV, uno per allenamento, messi nella cartella
@@ -52,6 +61,11 @@ La pipeline completa fa tre passaggi:
    - l'asse X e' il tempo della distanza/stile scelti;
    - l'asse Y sono le bracciate effettive;
    - il colore indica l'ordine/ID dell'allenamento.
+   
+   Opzionalmente puo' generare anche uno scatter alternativo con:
+   - l'asse X il passo medio della ripetuta (in secondi);
+   - l'asse Y le bracciate per minuto (bracciate effettive / tempo in minuti);
+   - stessa colorazione (ordine/ID dell'allenamento).
 
 Alla fine ottieni questi file:
 
@@ -128,6 +142,21 @@ Le distanze supportate sono definite nel progetto e includono `50`, `75`, `100`
 e `200`. Lo stile viene confrontato con la colonna `Stile` del CSV; sono
 supportati anche alias comuni come `stile` per `Stile libero`.
 
+#### Scatter chart types
+
+Puoi scegliere quale tipo di scatter chart generare con `--chart-type`:
+
+```powershell
+# Scatter tempo vs bracciate effettive (default)
+analisi_nuoto run --chart-type time
+
+# Scatter passo medio vs bracciate per minuto (NUOVO)
+analisi_nuoto run --chart-type pace
+
+# Genera entrambi gli scatter plot
+analisi_nuoto run --chart-type all
+```
+
 Per aprire anche la finestra del grafico mentre viene generato:
 
 ```powershell
@@ -144,8 +173,16 @@ analisi_nuoto prepare --distance 100 --style "Stile libero"
 analisi_nuoto plot --distance 100 --style "Stile libero"
 ```
 
+Il comando `plot` supporta lo stesso parametro `--chart-type`:
+
+```powershell
+analisi_nuoto plot --distance 100 --style stile --chart-type time
+analisi_nuoto plot --distance 100 --style stile --chart-type pace
+analisi_nuoto plot --distance 100 --style stile --chart-type all
+```
+
 I vecchi comandi `prepare-100-stile` e `plot-100-stile` restano disponibili come
-alias per il caso storico dei 100 stile libero.
+alias per il caso storico dei 100 stile libero:
 
 ### 5. Apri la dashboard interattiva
 

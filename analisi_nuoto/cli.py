@@ -38,6 +38,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = subparsers.add_parser("run", help="Esegue tutta la pipeline")
     _add_common_paths(run_parser)
     run_parser.add_argument("--show-plot", action="store_true")
+    run_parser.add_argument(
+        "--chart-type",
+        choices=["time", "pace", "all"],
+        default="time",
+        help="Tipo di scatter: 'time' (tempo vs bracciate), 'pace' (passo vs bracciate/min), 'all' (entrambi)",
+    )
 
     merge_parser = subparsers.add_parser("merge", help="Unisce i CSV dei singoli lap")
     _add_common_paths(merge_parser)
@@ -61,6 +67,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_common_paths(plot_parser)
     plot_parser.add_argument("--show-plot", action="store_true")
+    plot_parser.add_argument(
+        "--chart-type",
+        choices=["time", "pace", "all"],
+        default="time",
+        help="Tipo di scatter: 'time' (tempo vs bracciate), 'pace' (passo vs bracciate/min), 'all' (entrambi)",
+    )
     plot_parser.set_defaults(distance=100, style="Stile libero")
 
     plot_swim_parser = subparsers.add_parser(
@@ -69,6 +81,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_common_paths(plot_swim_parser)
     plot_swim_parser.add_argument("--show-plot", action="store_true")
+    plot_swim_parser.add_argument(
+        "--chart-type",
+        choices=["time", "pace", "all"],
+        default="time",
+        help="Tipo di scatter: 'time' (tempo vs bracciate), 'pace' (passo vs bracciate/min), 'all' (entrambi)",
+    )
 
     dashboard_parser = subparsers.add_parser(
         "dashboard",
@@ -131,10 +149,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.command == "run":
         from analisi_nuoto.orchestrator import run_pipeline
 
-        result = run_pipeline(paths, show_plot=args.show_plot)
+        chart_type = getattr(args, "chart_type", "time")
+        result = run_pipeline(paths, show_plot=args.show_plot, chart_type=chart_type)
         print(f"CSV unificato: {result.merged_laps_csv} ({result.merged_rows} righe)")
         print(f"Dataset {paths.distance} {paths.style}: {result.swim_csv} ({result.swim_rows} righe)")
-        print(f"Grafico: {result.swim_plot}")
+        if result.swim_plot:
+            print(f"Grafico tempo/bracciate: {result.swim_plot}")
+        if result.stroke_rate_plot:
+            print(f"Grafico passo/bracciate per minuto: {result.stroke_rate_plot}")
         return 0
 
     if args.command == "merge":
@@ -157,16 +179,36 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     if args.command in {"plot-100-stile", "plot"}:
-        from analisi_nuoto.visualization import build_swim_scatter
+        from analisi_nuoto.visualization import build_swim_scatter, build_swim_scatter_stroke_rate
+        from analisi_nuoto.naming import default_stroke_rate_image
 
-        plot_path = build_swim_scatter(
-            paths.swim_csv,
-            paths.swim_plot,
-            distance=paths.distance,
-            style=paths.style,
-            show_plot=args.show_plot,
-        )
-        print(f"Grafico: {plot_path}")
+        chart_type = getattr(args, "chart_type", "time")
+        
+        if chart_type in {"time", "all"}:
+            plot_path = build_swim_scatter(
+                paths.swim_csv,
+                paths.swim_plot,
+                distance=paths.distance,
+                style=paths.style,
+                show_plot=args.show_plot,
+            )
+            print(f"Grafico tempo/bracciate: {plot_path}")
+        
+        if chart_type in {"pace", "all"}:
+            stroke_rate_plot = default_stroke_rate_image(
+                paths.swim_plot.parent,
+                distance=paths.distance,
+                style=paths.style,
+            )
+            plot_path = build_swim_scatter_stroke_rate(
+                paths.merged_laps_csv,
+                stroke_rate_plot,
+                distance=paths.distance,
+                style=paths.style,
+                show_plot=args.show_plot,
+            )
+            print(f"Grafico passo/bracciate per minuto: {plot_path}")
+        
         return 0
 
     parser.error(f"Comando non riconosciuto: {args.command}")

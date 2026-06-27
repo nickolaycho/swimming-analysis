@@ -30,7 +30,12 @@ def merge_lap_csvs(input_folder: Union[str, Path], output_csv: Union[str, Path])
         raise ValueError(f"Nessun CSV valido trovato.\n{joined_errors}")
 
     merged_df = pd.concat(dataframes, ignore_index=True)
+    
+    # Rimuovi colonne vuote e colonne "Unnamed"
+    merged_df = merged_df.dropna(axis=1, how='all')  # Rimuovi colonne completamente vuote
+    merged_df = merged_df.loc[:, ~merged_df.columns.str.startswith('Unnamed')]  # Rimuovi colonne Unnamed
+    
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    merged_df.to_csv(output_path, index=False)
+    merged_df.to_csv(output_path, index=False, encoding='utf-8')
 
     return merged_df
